@@ -1,0 +1,273 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+    <div class="main" v-cloak>
+        <div class="main-top" v-html="navMenu.html"></div>
+        <div class="main-tool">
+            <div class="request-setting">
+                <ul>
+                    <li>
+                        <div class="col-2 group-label">
+                            <span class="text-danger">*</span>User ID
+                        </div>
+                        <div class="col-10 group-text">
+                            <el-input type="input" size="small" class="input-xlarge" v-model="custom.parameterInfo.userID"></el-input>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="col-2 group-label">
+                            <span class="text-danger">*</span>Version
+                        </div>
+                        <div class="col-10 group-text">
+                            <el-input type="input" size="small" class="input-xlarge" v-model="custom.parameterInfo.version" placeholder="1.0"></el-input>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="col-2 group-label">
+                            <span class="text-danger">*</span>Format
+                        </div>
+                        <div class="col-10 group-text">
+                            <el-input type="input" size="small" class="input-xlarge" v-model="custom.parameterInfo.format" placeholder="json"></el-input>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="col-2 group-label">
+                            <span class="text-danger">*</span>Method
+                        </div>
+                        <div class="col-10 group-text">
+                            <el-input type="input" size="small" class="input-xlarge" v-model="custom.parameterInfo.method" placeholder="md5/sha"></el-input>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="col-2 group-label">
+                            <span class="text-danger">*</span>API Path
+                        </div>
+                        <div class="col-10 group-text">
+                            <el-select size="small" class="input-xlarge" placeholder="Select..." v-model="subForm.apiPath" v-on:change="selectAPIPath">
+                                <el-option v-for="item in custom.parameterInfo.apiInterfaces"
+                                           :key="item.apiPathID"
+                                           :label="item.apiPath"
+                                           :value="item.apiPathID">
+                                </el-option>
+                            </el-select>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="col-2 group-label text-gray">
+                            Request URL
+                        </div>
+                        <div class="col-10 group-text">
+                            {{subForm.requestURL}}
+                        </div>
+                    </li>
+                    <li>
+                        <div class="col-2 group-label text-gray">
+                            Http Method
+                        </div>
+                        <div class="col-10 group-text">
+                            {{subForm.httpMethod}}
+                        </div>
+                    </li>
+                </ul>
+                <div class="setting-line">
+                    <span>parameters</span>
+                </div>
+                <ul>
+                    <li v-for="item in subForm.paramArray" v-if="!custom.isPost">
+                        <div class="col-2 group-label">
+                            <span class="text-danger" v-if="item.required">*</span>{{item.param}}
+                        </div>
+                        <div class="col-10 group-text">
+                            <el-input type="input" size="small" class="input-xlarge" :placeholder="item.placeholder" v-model="item.value"></el-input>
+                        </div>
+                    </li>
+                    <li v-if="custom.isPost">
+                        <div class="col-2 group-label">
+                            Records
+                        </div>
+                        <div class="col-10 group-text">
+                            <el-input-number size="small" :min="1" :max="100" v-model="custom.currentRecord" v-on:change="selectRecords"></el-input-number>
+                        </div>
+                    </li>
+                    <li v-if="custom.isPost">
+                        <div class="col-2 group-label">
+                            <span class="text-danger">*</span>Data&nbsp;&nbsp;<a href="javascript:void(0)" title="Magnifier" v-on:click="postDatasDetail"><i class="el-icon-search text-primary"></i></a>
+                        </div>
+                        <div class="col-10 group-text">
+                            <el-input type="textarea" :rows="10" style="width:425px;" v-model="subForm.postData"></el-input>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="col-2 group-label">
+
+                        </div>
+                        <div class="col-10 group-text">
+                            <el-button size="medium" type="warning" :loading="searchButton.loading" v-on:click="requestForm">Start Test<i class="el-icon-search el-icon--right"></i></el-button>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="request-info">
+                <div class="info-title">Request&nbsp;&nbsp;<a href="javascript:void(0)" title="Magnifier" v-on:click="requestDetail"><i class="el-icon-search text-primary"></i></a></div>
+                <div class="info-textarea">
+                    <el-input type="textarea" :rows="11" readonly="true" class="input-xxlarge" v-model="custom.requestInfo"></el-input>
+                </div>
+                <div class="info-title">Response&nbsp;&nbsp;<a href="javascript:void(0)" title="Magnifier" v-on:click="responseDetail"><i class="el-icon-search text-primary"></i></a></div>
+                <div class="info-textarea">
+                    <el-input type="textarea" :rows="11" readonly="true" class="input-xxlarge" v-model="custom.responseInfo"></el-input>
+                </div>
+            </div>
+            <div class="clear-left"></div>
+        </div>
+        <partial name="~/Views/Shared/_ElInputDailog.cshtml">
+    </div>
+@section scripts {
+    <script type="text/javascript">
+        var appVue = new Vue({
+            el: '.main',
+            mixins: [elementExtend.Base.MixinVue()],
+            data: {
+                navMenu: {
+                    html: ''
+                },
+                subForm: {
+                    userID: '',
+                    version: '',
+                    format: '',
+                    method:'',
+                    apiPath: '',
+                    requestURL: '',
+                    httpMethod: '',
+                    paramArray: [],
+                    postData: ''
+                },
+                custom: {
+                    parameterInfo: [],
+                    isPost:false,
+                    currentRecord:1,
+                    requestInfo: '',
+                    responseInfo: ''
+                }
+            },
+            created: function () {
+                this.initData();
+            },
+            mounted: function () {
+            },
+            methods: {
+                initData() {
+                    let $vue = this;
+                    elementExtend.Base.ParseData({
+                        url: '@Url.Action("Initialize_Info", "OMSAPITools")',
+                        params: {
+                            type: 'my_pf_index'
+                        },
+                        success: function (data) {
+                            //导航栏
+                            $vue.navMenu.html = data.navMenu;
+                            //参数
+                            $vue.custom.parameterInfo = data.parameterInfo;
+                            $vue.subForm.userID = $vue.custom.parameterInfo.userID;
+                            $vue.subForm.version = $vue.custom.parameterInfo.version;
+                            $vue.subForm.format = $vue.custom.parameterInfo.format;
+                            $vue.subForm.method = $vue.custom.parameterInfo.method;
+                        }
+                    });
+                },
+                selectAPIPath: function (value) {
+                    if (value > 0) {
+                        let $vue = this;
+                        var $currentAPI = this.custom.parameterInfo.apiInterfaces[value - 1];
+                        this.subForm.requestURL = $currentAPI.requestURL;
+                        this.subForm.httpMethod = $currentAPI.httpMethod;
+                        //参数
+                        this.subForm.paramArray = [];
+                        $currentAPI.parameters.forEach(function (item, index, array) {
+                            $vue.subForm.paramArray.push({
+                                param: item.param,
+                                value: item.value,
+                                placeholder: item.placeholder,
+                                required: item.required
+                            });
+                        });
+                        this.custom.isPost = this.subForm.httpMethod == 'POST';
+                        this.custom.currentRecord = 1;
+                        //创建PostData
+                        var _postParamsJsonArray = $currentAPI.postDatas;
+                        this.subForm.postData = JSON.stringify(_postParamsJsonArray, null, "\t");
+                        //返回信息
+                        this.custom.requestInfo = '';
+                        this.custom.responseInfo = '';
+                    }
+                    else {
+                        elementExtend.Tips.Alert($vue, 'Missing API!', 5);
+                    }
+                },
+                selectRecords: function (value) {
+                    if (value > 0) {
+                        var $currentAPI = this.custom.parameterInfo.apiInterfaces[this.subForm.apiPath-1];
+                        var _paramsJsonModel = $currentAPI.postDatas[0];
+                        var _currentParamsJsonArray = $.parseJSON(this.subForm.postData);
+                        var _len = _currentParamsJsonArray.length;
+                        if (value > _len) {
+                            for (var t = 0; t < value - _len; t++) {
+                                _currentParamsJsonArray.push(_paramsJsonModel);
+                            }
+                        }
+                        else if (value<_len){
+                            _currentParamsJsonArray.splice(value,_len-value);
+                        }
+                        //转化成str
+                        this.subForm.postData = JSON.stringify(_currentParamsJsonArray, null, "\t");
+                        }
+                    else {
+                        elementExtend.Tips.Alert($vue, 'Invalid Records!', 5);
+                    }
+                },
+                requestForm: function () {
+                    let $vue = this;
+                    elementExtend.Base.PostForm({
+                        vue: $vue,
+                        url: '@Url.Action("MY_PF_Message", "OMSAPITools")',
+                        params: $vue.subForm,
+                        success: function (data) {
+                            if (data.result) {
+                                $vue.custom.requestInfo = data.requestInfo;
+                                $vue.custom.responseInfo = data.responseInfo;
+                            }
+                            else {
+                                elementExtend.Tips.Alert($vue, data.msg, 5);
+                            }
+                        }
+                    });
+                },
+                postDatasDetail: function () {
+                    let $vue = this;
+                    elementExtend.Base.OpenTextAreaDialog({
+                        vue: $vue,
+                        text: this.subForm.postData,
+                        readonly: false,
+                        callBackFunc: function (data) {
+                            $vue.subForm.postData = data;
+                        }
+                    });
+                },
+                requestDetail: function () {
+                    elementExtend.Base.OpenTextAreaDialog({
+                        vue: this,
+                        text: this.custom.requestInfo,
+                        readonly:true
+                    });
+                },
+                responseDetail: function () {
+                    elementExtend.Base.OpenTextAreaDialog({
+                        vue: this,
+                        text: this.custom.responseInfo,
+                        readonly: true
+                    });
+                }
+            }
+        });
+    </script>
+}
+

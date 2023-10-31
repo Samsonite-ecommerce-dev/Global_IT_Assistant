@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\Document\Template\" />
+    <Folder Include="wwwroot\UploadFile\Temporary\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\UploadFile\Flag\China_Flag.png" />
+    <None Include="wwwroot\UploadFile\Flag\HongKong_Flag.png" />
+    <None Include="wwwroot\UploadFile\Flag\Japan_Flag.png" />
+    <None Include="wwwroot\UploadFile\Flag\Korea_Flag.png" />
+    <None Include="wwwroot\UploadFile\Flag\Malaysia_Flag.png" />
+    <None Include="wwwroot\UploadFile\Flag\Singapore_Flag.png" />
+    <None Include="wwwroot\UploadFile\Flag\Thailand_Flag.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Samsonite.Library\Samsonite.Library.Web.Business.Custom\Samsonite.Library.Web.Business.Custom.csproj" />
+    <ProjectReference Include="..\Samsonite.Library\Samsonite.Library.Web.DependencyInjection\Samsonite.Library.Web.DependencyInjection.csproj" />
+    <ProjectReference Include="..\Samsonite.Library\Samsonite.Library.WebApi.Business\Samsonite.Library.WebApi.Business.csproj" />
+    <ProjectReference Include="..\Samsonite.Library\Samsonite.Library.WebApi.DependencyInjection\Samsonite.Library.WebApi.DependencyInjection.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Samsonite.Library.Web.Business.Basic\Samsonite.Library.Web.Business.Basic.csproj" />
+    <ProjectReference Include="..\Samsonite.Library.Web.Business.Custom\Samsonite.Library.Web.Business.Custom.csproj" />
+  </ItemGroup>
+
+</Project>

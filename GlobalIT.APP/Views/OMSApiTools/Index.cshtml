@@ -1,0 +1,71 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="main" v-cloak>
+    <div class="main-top" v-html="navMenu.html"></div>
+    <div class="main-canvas">
+        <el-tabs v-model="custom.activeName" type="card">
+            <el-tab-pane :label="g.groupName" :name="g.groupID" v-for="g in custom.dataOptions">
+                <ul>
+                    <li v-for="p in g.groups">
+                        <dl>
+                            <dt>{{p.projectName}}</dt>
+                            <dd v-for="item in p.environments">
+                                {{item.name}}
+                                <span class="detail">
+                                    <el-link icon="el-icon-link" :type="item.color" :href="item.url">{{item.link}}</el-link>
+                                </span>
+                            </dd>
+                        </dl>
+                    </li>
+                </ul>
+            </el-tab-pane>
+        </el-tabs>
+    </div>
+</div>
+@section scripts {
+    <script type="text/javascript">
+        var appVue = new Vue({
+            el: '.main',
+            mixins: [elementExtend.Grid.MixinVue()],
+            data: {
+                custom: {
+                    activeName: 1,
+                    dataOptions:[]
+                }
+            },
+            created: function () {
+                this.initData();
+                this.toolList();
+            },
+            mounted: function(){
+            },
+            methods: {
+                initData() {
+                    let $vue = this;
+                    elementExtend.Base.ParseData({
+                        url: '@Url.Action("Initialize_Info", "OMSAPITools")',
+                        params: {
+                            type:'index'
+                        },
+                        success: function (data) {
+                            //导航栏
+                            $vue.navMenu.html = data.navMenu;
+                        }
+                    });
+                },
+                toolList: function () {
+                    let $vue = this;
+                    elementExtend.Base.ParseData({
+                        url: '@Url.Action("Index_Message", "OMSAPITools")',
+                        success: function (data) {
+                            //数据集合
+                            $vue.custom.dataOptions = data.rows;
+                        }
+                    });
+                }
+            }
+        });
+    </script>
+}
+

@@ -1,0 +1,64 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+    <div class="main" v-cloak>
+        <div class="main-top" v-html="navMenu.html"></div>
+        <div class="main-canvas">
+            <ul>
+                <li v-for="c in custom.appDetailOptions">
+                    <dl>
+                        <dt>{{c.catelogName}}</dt>
+                        <dd v-for="item in c.environments">
+                            <span class="title">{{item.environmentName}}</span>
+                            <span class="content" v-if="(c.catelogId==1 || c.catelogId==2)">
+                                <el-link :type="item.color" :href="item.link" target="_blank">{{item.environmentContent}}</el-link>
+                            </span>
+                            <span class="content" v-if="(c.catelogId==3 || c.catelogId==4)">
+                                <el-link :type="item.color" :href="item.link">{{item.environmentContent}}</el-link>
+                            </span>
+                        </dd>
+                    </dl>
+                </li>
+            </ul>
+        </div>
+    </div>
+@section scripts {
+    <script type="text/javascript">
+        var appVue = new Vue({
+            el: '.main',
+            mixins: [elementExtend.Base.MixinVue()],
+            data: {
+                navMenu: {
+                    html: ''
+                },
+                custom: {
+                    appDetailOptions:[]
+                }
+            },
+            created: function () {
+                this.initData();
+            },
+            mounted: function () {
+            },
+            methods: {
+                initData() {
+                    let $vue = this;
+                    elementExtend.Base.ParseData({
+                        url: '@Url.Action("Initialize_Info", "Applications")',
+                        params: {
+                            type: 'detail',
+                            id: $.requestQueryString('id')
+                        },
+                        success: function (data) {
+                            //导航栏
+                            $vue.navMenu.html = data.navMenu;
+                            //数据集合
+                            $vue.custom.appDetailOptions = data.appDetails;
+                        }
+                    });
+                }
+            }
+        });
+    </script>
+}
+

@@ -1,0 +1,50 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section style{
+    <style type="text/css">
+        body {
+            background: #fff;
+        }
+    </style>
+}
+<div class="main-error" v-cloak>
+    <div class="logo" v-html="statusCodeMassage"></div>
+    <div class="msg"><i class="fa fa-warning"></i><span v-html="errMessage"></span></div>
+</div>
+@section scripts{
+    <script type="text/javascript">
+        var appVue = new Vue({
+            el: '.main-error',
+            data: {
+                statusCodeMassage:'',
+                errMessage:''
+            },
+            created: function () {
+                this.initData();
+            },
+            mounted: function(){
+            },
+            methods: {
+                initData() {
+                    let $vue = this;
+                    elementExtend.Base.ParseData({
+                        url: '@Url.Action("Initialize_Info", "Error")',
+                        params: {
+                            type: $.requestQueryString('Type'),
+                            statusCode: $.requestQueryString('StatusCode'),
+                            message: $.requestQueryString('Message')
+                        },
+                        success: function (data) {
+                            $vue.statusCodeMassage = data.statusCode;
+                            $vue.errMessage = data.errMessage;
+                        }
+                    });
+                },
+                goLogin: function () {
+                    window.parent.location.href = '@Url.Action("Index","Login")';
+                }
+            }
+        });
+    </script>
+}

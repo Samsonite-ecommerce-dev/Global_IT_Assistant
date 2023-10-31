@@ -1,0 +1,62 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="main" v-cloak>
+    <div class="main-top" v-html="navMenu.html"></div>
+    <div class="main-shortcut">
+        <el-tabs v-model="custom.activeName" type="card">
+            <el-tab-pane :label="g.groupName" :name="g.groupID" v-for="g in custom.dataOptions">
+                <a :href="item.appUrl" v-for="item in g.groups">
+                    <img :src="item.appFlag" alt="" />
+                    <span>{{item.appName}}</span>
+                </a>
+            </el-tab-pane>
+        </el-tabs>
+    </div>
+</div>
+@section scripts {
+    <script type="text/javascript">
+        var appVue = new Vue({
+            el: '.main',
+            mixins: [elementExtend.Grid.MixinVue()],
+            data: {
+                custom: {
+                    activeName: 1,
+                    dataOptions:[]
+                }
+            },
+            created: function () {
+                this.initData();
+                this.applicationList();
+            },
+            mounted: function(){
+            },
+            methods: {
+                initData() {
+                    let $vue = this;
+                    elementExtend.Base.ParseData({
+                        url: '@Url.Action("Initialize_Info", "Applications")',
+                        params: {
+                            type:'index'
+                        },
+                        success: function (data) {
+                            //导航栏
+                            $vue.navMenu.html = data.navMenu;
+                        }
+                    });
+                },
+                applicationList: function () {
+                    let $vue = this;
+                    elementExtend.Base.ParseData({
+                        url: '@Url.Action("Index_Message", "Applications")',
+                        success: function (data) {
+                            //数据集合
+                            $vue.custom.dataOptions = data.rows;
+                        }
+                    });
+                }
+            }
+        });
+    </script>
+}
+
