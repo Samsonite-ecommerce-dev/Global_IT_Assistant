@@ -72,19 +72,6 @@ namespace Samsonite.Library.Web.Core.Models
         public bool IsDeleteOriginalFile { get; set; }
     }
 
-    public class FtpPutBatchResult
-    {
-        /// <summary>
-        /// 上传文件
-        /// </summary>
-        public string FilePath { get; set; }
-
-        /// <summary>
-        /// 结果
-        /// </summary>
-        public bool Result { get; set; }
-    }
-
     /// <summary>
     /// ftp返回文件
     /// </summary>
@@ -99,5 +86,29 @@ namespace Samsonite.Library.Web.Core.Models
         /// 失败文件
         /// </summary>
         public List<string> FailFile { get; set; }
+    }
+
+    /// <summary>
+    /// ftp操作结果
+    /// </summary>
+    public class FtpOperResult
+    {
+        /// <summary>
+        /// 结果
+        /// </summary>
+        public bool Result { get; set; }
+
+        /// <summary>
+        /// 错误信息
+        /// </summary>
+        public string ResultMessage { get; set; }
+    }
+
+    public class FtpPutBatchResult: FtpOperResult
+    {
+        /// <summary>
+        /// 上传文件
+        /// </summary>
+        public string FilePath { get; set; }
     }
 }

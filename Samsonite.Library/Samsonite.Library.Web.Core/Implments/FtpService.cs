@@ -16,7 +16,6 @@ namespace Samsonite.Library.Web.Core
             _appDB = appEntities;
         }
 
-        #region FTP
         /// <summary>
         /// 获取Ftp信息
         /// </summary>
@@ -45,65 +44,49 @@ namespace Samsonite.Library.Web.Core
             }
         }
 
-        /// <summary>
-        /// 从FTP下载文件
-        /// </summary>
-        /// <param name="config"></param>
-        /// <returns></returns>
-        public FTPResult DownFileFromFTP(SapFTPDto config)
-        {
-            FtpDto ftpDto = config.Ftp;
-            //FTP文件目录
-            SFTPHelper sftpHelper = new SFTPHelper(ftpDto.FtpServerIp, ftpDto.UserId, ftpDto.Password);
-            //本地保存文件目录
-            string _localSavePath = $"{AppDomain.CurrentDomain.BaseDirectory + config.LocalSavePath}/{DateTime.Now.ToString("yyyy-MM")}/{DateTime.Now.ToString("yyyyMMdd")}";
-            //下载文件
-            return this.GetFilesFromSFtp(sftpHelper, config.RemoteFilePath, _localSavePath, config.FileExt, ftpDto.IsDeleteOriginalFile);
-        }
-        #endregion
-
         #region SFTP
         /// <summary>
         /// 从SFTP上读取特定格式文件
         /// </summary>
         /// <param name="sFTPHelper">FTP对象</param>
-        /// <param name="remoteFilePath">FTP文件目录路径</param>
-        /// <param name="localSavePath">本地文件目录路径</param>
-        /// <param name="fileExt">文件后缀名</param>
+        /// <param name="remotePath">FTP文件目录路径</param>
+        /// <param name="localPath">本地文件目录路径</param>
+        /// <param name="suffix">文件后缀名</param>
         /// <param name="isDelete">是否删除ftp上文件</param>
         /// <returns></returns>
-        public FTPResult GetFilesFromSFtp(SFTPHelper sFTPHelper, string remoteFilePath, string localSavePath, string fileExt, bool isDelete = true)
+        public FTPResult GetFilesFromSFtp(SFTPHelper sFTPHelper, string remotePath, string localPath, string suffix, bool isDelete = false)
         {
             FTPResult _result = new FTPResult();
             _result.SuccessFile = new List<string>();
             _result.FailFile = new List<string>();
             //检测文件路径是否存在
-            if (!Directory.Exists(localSavePath)) Directory.CreateDirectory(localSavePath);
+            if (!Directory.Exists(localPath)) Directory.CreateDirectory(localPath);
+            string remoteFilePath = string.Empty;
+            string localFilePath = string.Empty;
             //打开ftp连接
             sFTPHelper.Connect();
-            var _ftpFileNames = sFTPHelper.GetFileList(remoteFilePath, SFTPHelper.FileType.OnlyFile, fileExt);
+            var ftpFileNames = sFTPHelper.GetFileList(remoteFilePath, suffix);
             //读取文件
-            foreach (var _file in _ftpFileNames)
+            foreach (var file in ftpFileNames)
             {
-                var _ftpFile = remoteFilePath + "/" + _file;
-                var _localFile = localSavePath + "/" + _file;
-                //下载文件到本地
-                if (sFTPHelper.Get(_ftpFile, _localFile))
+                try
                 {
-                    _result.SuccessFile.Add(_localFile);
+                    remoteFilePath = Path.Combine(remoteFilePath, file);
+                    localFilePath = Path.Combine(localPath, file);
+                    //下载文件到本地
+                    sFTPHelper.Get(remoteFilePath, localFilePath);
+                    _result.SuccessFile.Add(localFilePath);
                     //删除ftp上的文件
                     if (isDelete)
                     {
-                        sFTPHelper.Delete(_ftpFile);
+                        sFTPHelper.Delete(remoteFilePath);
                     }
                 }
-                else
+                catch
                 {
-                    _result.FailFile.Add(_file.ToString());
+                    _result.FailFile.Add(file);
                 }
             }
-            //释放ftp连接
-            sFTPHelper.Disconnect();
             return _result;
         }
 
@@ -112,31 +95,32 @@ namespace Samsonite.Library.Web.Core
         /// </summary>
         /// <param name="sFTPHelper">FTP对象</param>
         /// <param name="localFilePath">本地文件路径</param>
-        /// <param name="remoteFilePath">FTP文件目录路径</param>
+        /// <param name="remotePath">FTP文件目录路径</param>
         /// <returns></returns>
-        public bool SendXMLToSFtp(SFTPHelper sFTPHelper, string localFilePath, string remoteFilePath)
+        public FtpPutBatchResult SendXMLToSFtp(SFTPHelper sFTPHelper, string localFilePath, string remotePath)
         {
             try
             {
                 //打开ftp连接
                 sFTPHelper.Connect();
-                if (sFTPHelper.Put(localFilePath, remoteFilePath))
+                //推送文件
+                var remoteFileName = Path.GetFileName(localFilePath);
+                sFTPHelper.Put(localFilePath, remotePath, remoteFileName);
+                return new FtpPutBatchResult()
                 {
-                    return true;
-                }
-                else
+                    FilePath= localFilePath,
+                    Result = true,
+                    ResultMessage = string.Empty
+                };
+            }
+            catch (Exception ex)
+            {
+                return new FtpPutBatchResult()
                 {
-                    return false;
-                }
-            }
-            catch
-            {
-                return false;
-            }
-            finally
-            {
-                //释放ftp连接
-                sFTPHelper.Disconnect();
+                    FilePath = localFilePath,
+                    Result = false,
+                    ResultMessage = ex.Message
+                };
             }
         }
 
@@ -145,9 +129,9 @@ namespace Samsonite.Library.Web.Core
         /// </summary>
         /// <param name="sFTPHelper"></param>
         /// <param name="localFilePathList"></param>
-        /// <param name="remoteFilePath"></param>
+        /// <param name="remotePath"></param>
         /// <returns></returns>
-        public List<FtpPutBatchResult> SendXMLToSFtp(SFTPHelper sFTPHelper, List<string> localFilePathList, string remoteFilePath)
+        public List<FtpPutBatchResult> SendXMLToSFtp(SFTPHelper sFTPHelper, List<string> localFilePathList, string remotePath)
         {
             List<FtpPutBatchResult> _result = new List<FtpPutBatchResult>();
             if (localFilePathList.Count > 0)
@@ -156,27 +140,24 @@ namespace Samsonite.Library.Web.Core
                 {
                     //打开ftp连接
                     sFTPHelper.Connect();
-                    foreach (string _f in localFilePathList)
+                    foreach (string file in localFilePathList)
                     {
-                        var _r = sFTPHelper.Put(_f, remoteFilePath);
-                        if (_r)
+                        try
                         {
-                            _result.Add(new FtpPutBatchResult() { FilePath = _f, Result = true });
+                            //上传文件
+                            var ftpFileName = Path.GetFileName(file);
+                            sFTPHelper.Put(file, remotePath, ftpFileName);
+                            _result.Add(new FtpPutBatchResult() { FilePath = file, Result = true, ResultMessage = string.Empty });
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            _result.Add(new FtpPutBatchResult() { FilePath = _f, Result = false });
+                            _result.Add(new FtpPutBatchResult() { FilePath = file, Result = false, ResultMessage = ex.Message });
                         }
                     }
                 }
                 catch (Exception ex)
                 {
                     throw ex;
-                }
-                finally
-                {
-                    //释放ftp连接
-                    sFTPHelper.Disconnect();
                 }
             }
             return _result;
